@@ -45,6 +45,8 @@ TIM_HandleTypeDef htim1;
 
 /* USER CODE BEGIN PV */
 
+uint16_t ADC_value;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -93,6 +95,11 @@ int main(void)
   MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
 
+  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);		// R Channel Start
+  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);		// G Channel Start
+  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_3);		// B Channel Start
+  ADC_value = 0;								// With first energy ADC_value = 0
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -102,6 +109,15 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+
+	  HAL_ADC_Start(&hadc1);								// Start the ADC1.
+	  HAL_ADC_PollForConversion(&hadc1, HAL_MAX_DELAY); 	// Using ADC with polling mode.
+	  ADC_value = HAL_ADC_GetValue(&hadc1);					// Get the ADC value in polling mode.
+
+	  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, ADC_value);		// Write the value in TIM_PWM_Ch1
+	  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, ADC_value);		// Write the value in TIM_PWM_Ch2
+	  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, ADC_value);		// Write the value in TIM_PWM_Ch3
+	  HAL_Delay(10);
   }
   /* USER CODE END 3 */
 }
@@ -225,9 +241,9 @@ static void MX_TIM1_Init(void)
 
   /* USER CODE END TIM1_Init 1 */
   htim1.Instance = TIM1;
-  htim1.Init.Prescaler = 65;
+  htim1.Init.Prescaler = 3;
   htim1.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim1.Init.Period = 255;
+  htim1.Init.Period = 4095;
   htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim1.Init.RepetitionCounter = 0;
   htim1.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
