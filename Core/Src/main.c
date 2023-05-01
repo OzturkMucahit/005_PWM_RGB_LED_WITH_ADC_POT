@@ -45,7 +45,8 @@ TIM_HandleTypeDef htim1;
 
 /* USER CODE BEGIN PV */
 
-uint16_t ADC_value;
+uint16_t adc_value, adc_value_R, adc_value_G, adc_value_B;
+int count, value;
 
 /* USER CODE END PV */
 
@@ -98,7 +99,13 @@ int main(void)
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);		// R Channel Start
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);		// G Channel Start
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_3);		// B Channel Start
-  ADC_value = 0;								// With first energy ADC_value = 0
+  adc_value = 0;								// With first energy ADC_value = 0
+  adc_value_R = 0;
+  adc_value_G = 0;
+  adc_value_B = 0;
+
+  count = 0;
+  value = 0;
 
   /* USER CODE END 2 */
 
@@ -112,13 +119,47 @@ int main(void)
 
 	  HAL_ADC_Start(&hadc1);								// Start the ADC1.
 	  HAL_ADC_PollForConversion(&hadc1, HAL_MAX_DELAY); 	// Using ADC with polling mode.
-	  ADC_value = HAL_ADC_GetValue(&hadc1);					// Get the ADC value in polling mode.
+//	  adc_value = HAL_ADC_GetValue(&hadc1);					// Get the ADC value in polling mode.
 
-	  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, ADC_value);		// Write the value in TIM_PWM_Ch1
-	  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, ADC_value);		// Write the value in TIM_PWM_Ch2
-	  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, ADC_value);		// Write the value in TIM_PWM_Ch3
-	  HAL_Delay(10);
+
+	  if (HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_3))				// GPIOA_Pin_3 == 1 it means if you push button_1, runing in this if function.
+	  {
+		  HAL_Delay(500);									// Added delay function for count value increase one by one.
+		  count ++;
+	  }
+
+//	  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, adc_value);		// Write the value in TIM_PWM_Ch1
+//	  HAL_Delay(10);
+
+	  if (count%3 == 0){													// Case 1 => Set the Red colour.
+		  adc_value_R = HAL_ADC_GetValue(&hadc1);
+		  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, adc_value_R);		// Write the value in TIM_PWM_Ch1
+		  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, adc_value_G);		// Write the value in TIM_PWM_Ch1
+		  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, adc_value_B);		// Write the value in TIM_PWM_Ch1
+		  HAL_Delay(10);
+		  value = 0;
+	  }
+
+	  else if (count%3 == 1){												// Case 1 => Set the Green colour.
+		  adc_value_G = HAL_ADC_GetValue(&hadc1);
+		  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, adc_value_R);		// Write the value in TIM_PWM_Ch1
+		  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, adc_value_G);		// Write the value in TIM_PWM_Ch1
+		  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, adc_value_B);		// Write the value in TIM_PWM_Ch1
+		  HAL_Delay(10);
+		  value = 1;
+	  }
+
+	  else if (count%3 == 2){												// Case 1 => Set the Blue colour.
+		  adc_value_B = HAL_ADC_GetValue(&hadc1);
+		  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, adc_value_R);		// Write the value in TIM_PWM_Ch1
+		  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, adc_value_G);		// Write the value in TIM_PWM_Ch1
+		  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, adc_value_B);		// Write the value in TIM_PWM_Ch1
+		  HAL_Delay(10);
+		  value = 2;
+	  }
+
   }
+
   /* USER CODE END 3 */
 }
 
@@ -317,8 +358,14 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOE_CLK_ENABLE();
 
-  /*Configure GPIO pins : PA3 PA5 */
-  GPIO_InitStruct.Pin = GPIO_PIN_3|GPIO_PIN_5;
+  /*Configure GPIO pin : PA3 */
+  GPIO_InitStruct.Pin = GPIO_PIN_3;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : PA5 */
+  GPIO_InitStruct.Pin = GPIO_PIN_5;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
